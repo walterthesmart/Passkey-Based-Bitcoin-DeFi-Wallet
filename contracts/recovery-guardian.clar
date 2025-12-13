@@ -98,7 +98,7 @@
   (match (map-get? recovery-requests { owner: owner })
     recovery-data (let (
         (guardian-config (unwrap! (map-get? account-guardians { owner: owner })
-          (err ERR-GUARDIAN-NOT-FOUND)
+          ERR-GUARDIAN-NOT-FOUND
         ))
         (threshold (get guardian-threshold guardian-config))
         (approvals (get approval-count recovery-data))
@@ -327,29 +327,33 @@
       (guardian-config (unwrap! (map-get? account-guardians { owner: account-owner })
         ERR-GUARDIAN-NOT-FOUND
       ))
-      (can-execute (try! (can-execute-recovery account-owner)))
+      (execution-check (can-execute-recovery account-owner))
     )
-    ;; Verify recovery can be executed
-    ;; Verify recovery can be executed
-    (asserts! can-execute ERR-THRESHOLD-NOT-MET)
+    (match execution-check
+      can-execute (if can-execute
+        (begin
+          ;; Mark recovery as executed
+          (map-set recovery-requests { owner: account-owner }
+            (merge recovery-data {
+              executed: true,
+              is-active: false,
+            })
+          )
 
-    ;; Mark recovery as executed
-    (map-set recovery-requests { owner: account-owner }
-      (merge recovery-data {
-        executed: true,
-        is-active: false,
-      })
+          ;; Transfer guardian configuration to new owner
+          (map-set account-guardians { owner: (get new-owner recovery-data) }
+            guardian-config
+          )
+
+          ;; Note: Actual wallet transfer would happen here in integration with wallet-core
+          ;; This would require a cross-contract call to transfer wallet ownership
+
+          (ok (get new-owner recovery-data))
+        )
+        ERR-THRESHOLD-NOT-MET
+      )
+      error (err error)
     )
-
-    ;; Transfer guardian configuration to new owner
-    (map-set account-guardians { owner: (get new-owner recovery-data) }
-      guardian-config
-    )
-
-    ;; Note: Actual wallet transfer would happen here in integration with wallet-core
-    ;; This would require a cross-contract call to transfer wallet ownership
-
-    (ok (get new-owner recovery-data))
   )
 )
 
