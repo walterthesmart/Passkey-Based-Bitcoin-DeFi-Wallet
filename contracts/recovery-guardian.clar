@@ -330,6 +330,7 @@
       (can-execute (try! (can-execute-recovery account-owner)))
     )
     ;; Verify recovery can be executed
+    ;; Verify recovery can be executed
     (asserts! can-execute ERR-THRESHOLD-NOT-MET)
 
     ;; Mark recovery as executed
@@ -361,7 +362,7 @@
       ))
     )
     ;; Verify recovery is active and not executed
-    (asserts! (get is-active recovery-data) ERR-RECOVERY-NOT_ACTIVE)
+    (asserts! (get is-active recovery-data) ERR-RECOVERY-NOT-ACTIVE)
     (asserts! (not (get executed recovery-data)) ERR-NOT-AUTHORIZED)
 
     ;; Cancel recovery
