@@ -121,13 +121,14 @@
 (define-public (deposit (amount uint))
   (let (
       (owner tx-sender)
+      (contract-address (as-contract tx-sender))
       (wallet-data (unwrap! (map-get? wallets { owner: owner }) ERR-WALLET-NOT-FOUND))
       (current-balance (get balance wallet-data))
     )
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
 
     ;; Transfer STX from user to contract
-    (try! (stx-transfer? amount tx-sender (as-contract tx-sender)))
+    (try! (stx-transfer? amount tx-sender contract-address))
 
     ;; Update wallet balance
     (map-set wallets { owner: owner }
