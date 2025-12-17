@@ -121,14 +121,13 @@
 (define-public (deposit (amount uint))
   (let (
       (owner tx-sender)
-      (contract-address (as-contract tx-sender))
       (wallet-data (unwrap! (map-get? wallets { owner: owner }) ERR-WALLET-NOT-FOUND))
       (current-balance (get balance wallet-data))
     )
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
 
     ;; Transfer STX from user to contract
-    (try! (stx-transfer? amount tx-sender contract-address))
+    (try! (stx-transfer? amount owner tx-sender))
 
     ;; Update wallet balance
     (map-set wallets { owner: owner }
@@ -236,7 +235,7 @@
     (asserts! has-approvals ERR-MULTISIG-THRESHOLD-NOT-MET)
 
     ;; Transfer STX from contract to recipient
-    (try! (as-contract (stx-transfer? (get amount tx-data) tx-sender (get to tx-data))))
+    (try! (stx-transfer? (get amount tx-data) tx-sender (get to tx-data)))
 
     ;; Update wallet balance
     (map-set wallets { owner: owner }
@@ -296,7 +295,7 @@
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
 
     ;; Transfer STX
-    (try! (as-contract (stx-transfer? amount tx-sender to)))
+    (try! (stx-transfer? amount tx-sender to))
 
     ;; Update balance and nonce
     (map-set wallets { owner: owner }
